@@ -1,9 +1,5 @@
-#[macro_use]
-extern crate criterion;
-extern crate cedarwood;
-
 use cedarwood::Cedar;
-use criterion::Criterion;
+use criterion::{criterion_group, criterion_main, Criterion};
 
 fn build_cedar() -> Cedar {
     let dict = vec![
