@@ -143,8 +143,8 @@ impl fmt::Debug for Cedar {
     }
 }
 
-#[allow(dead_code)]
-const CEDAR_VALUE_LIMIT: i32 = std::i32::MAX - 1;
+#[cfg(feature = "reduced-trie")]
+const CEDAR_VALUE_LIMIT: i32 = i32::MAX - 1;
 const CEDAR_NO_VALUE: i32 = -1;
 
 /// Iterator for `common_prefix_search`
@@ -282,7 +282,6 @@ impl Cedar {
     }
 
     /// Build the double array trie from the given key value pairs
-    #[allow(dead_code)]
     pub fn build(&mut self, key_values: &[(&str, i32)]) {
         for (key, value) in key_values {
             self.update(key, *value);
