@@ -364,8 +364,6 @@ impl Cedar {
 
     // Find key from double array trie, with `from` as the cursor to traverse the nodes.
     fn find(&self, key: &[u8], from: &mut usize) -> Option<i32> {
-        #[allow(unused_assignments)]
-        let mut to: usize = 0;
         let mut pos = 0;
 
         // recursively matching the key.
@@ -377,8 +375,8 @@ impl Cedar {
                 }
             }
 
-            to = (self.array[*from].base() ^ (key[pos] as i32)) as usize;
-            if self.array[to as usize].check != (*from as i32) {
+            let to = (self.array[*from].base() ^ (key[pos] as i32)) as usize;
+            if self.array[to].check != (*from as i32) {
                 return None;
             }
 
