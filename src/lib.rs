@@ -340,8 +340,7 @@ impl Cedar {
     fn follow(&mut self, from: usize, label: u8) -> i32 {
         let base = self.array[from].base();
 
-        #[allow(unused_assignments)]
-        let mut to = 0;
+        let mut to;
 
         // the node is not there
         if base < 0 || self.array[(base ^ (label as i32)) as usize].check < 0 {
