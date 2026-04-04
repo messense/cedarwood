@@ -816,17 +816,29 @@ impl Cedar {
     }
 
     // remove the `label` from the sibling chain.
-    #[allow(dead_code)]
     fn pop_sibling(&mut self, from: i32, base: i32, label: u8) {
-        let mut c: *mut u8 = &mut self.n_infos[from as usize].child;
-        unsafe {
-            while *c != label {
-                let code = *c as i32;
-                c = &mut self.n_infos[(base ^ code) as usize].sibling;
+        let mut idx = from as usize;
+        let mut is_child = true;
+
+        loop {
+            let next_label = if is_child {
+                self.n_infos[idx].child
+            } else {
+                self.n_infos[idx].sibling
+            };
+
+            if next_label == label {
+                let sibling_of_target = self.n_infos[(base ^ (label as i32)) as usize].sibling;
+                if is_child {
+                    self.n_infos[idx].child = sibling_of_target;
+                } else {
+                    self.n_infos[idx].sibling = sibling_of_target;
+                }
+                return;
             }
 
-            let code = label as i32;
-            *c = self.n_infos[(base ^ code) as usize].sibling;
+            idx = (base ^ (next_label as i32)) as usize;
+            is_child = false;
         }
     }
 
