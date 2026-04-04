@@ -438,11 +438,9 @@ impl Cedar {
         #[cfg(not(feature = "reduced-trie"))]
         let mut e = self.array[from].base();
 
-        #[allow(unused_assignments)]
-        let mut has_sibling = false;
         loop {
             let n = self.array[from].clone();
-            has_sibling = self.n_infos[(n.base() ^ (self.n_infos[from].child as i32)) as usize].sibling != 0;
+            let has_sibling = self.n_infos[(n.base() ^ (self.n_infos[from].child as i32)) as usize].sibling != 0;
 
             // if the node has siblings, then remove `e` from the sibling.
             if has_sibling {
