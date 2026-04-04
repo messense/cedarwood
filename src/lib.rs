@@ -242,7 +242,6 @@ impl<'a> Iterator for PrefixPredictIter<'a> {
     }
 }
 
-#[allow(clippy::cast_lossless)]
 impl Cedar {
     /// Initialize the Cedar for further use.
     pub fn new() -> Self {
@@ -349,16 +348,16 @@ impl Cedar {
         let mut to;
 
         // the node is not there
-        if base < 0 || self.array[(base ^ (label as i32)) as usize].check < 0 {
+        if base < 0 || self.array[(base ^ i32::from(label)) as usize].check < 0 {
             // allocate a e node
             to = self.pop_e_node(base, label, from as i32);
-            let branch: i32 = to ^ (label as i32);
+            let branch: i32 = to ^ i32::from(label);
 
             // maintain the info in ninfo
             self.push_sibling(from, branch, label, base >= 0);
         } else {
             // the node is already there and the ownership is not `from`, therefore a conflict.
-            to = base ^ (label as i32);
+            to = base ^ i32::from(label);
             if self.array[to as usize].check != (from as i32) {
                 // call `resolve` to relocate.
                 to = self.resolve(from, base, label);
@@ -381,7 +380,7 @@ impl Cedar {
                 }
             }
 
-            let to = (self.array[*from].base() ^ (key[pos] as i32)) as usize;
+            let to = (self.array[*from].base() ^ i32::from(key[pos])) as usize;
             if self.array[to].check != (*from as i32) {
                 return None;
             }
@@ -446,7 +445,7 @@ impl Cedar {
 
         loop {
             let n = self.array[from].clone();
-            let has_sibling = self.n_infos[(n.base() ^ (self.n_infos[from].child as i32)) as usize].sibling != 0;
+            let has_sibling = self.n_infos[(n.base() ^ i32::from(self.n_infos[from].child)) as usize].sibling != 0;
 
             // if the node has siblings, then remove `e` from the sibling.
             if has_sibling {
@@ -535,7 +534,7 @@ impl Cedar {
         let mut c = self.n_infos[from].child;
 
         if from == 0 {
-            c = self.n_infos[(base ^ (c as i32)) as usize].sibling;
+            c = self.n_infos[(base ^ i32::from(c)) as usize].sibling;
 
             // if no sibling couldn be found from the virtual root, then we are done.
             if c == 0 {
@@ -545,7 +544,7 @@ impl Cedar {
 
         // recursively traversing down to look for the first leaf.
         while c != 0 {
-            from = (self.array[from].base() ^ (c as i32)) as usize;
+            from = (self.array[from].base() ^ i32::from(c)) as usize;
             c = self.n_infos[from].child;
             p += 1;
         }
@@ -558,7 +557,7 @@ impl Cedar {
         }
 
         // To return the value of the leaf.
-        let v = self.array[(self.array[from].base() ^ (c as i32)) as usize].base_;
+        let v = self.array[(self.array[from].base() ^ i32::from(c)) as usize].base_;
         (Some(v), from, p)
     }
 
@@ -576,15 +575,15 @@ impl Cedar {
 
         // traversing up until there is a sibling or it has reached the root.
         while c == 0 && from != root {
-            c = self.n_infos[from as usize].sibling;
-            from = self.array[from as usize].check as usize;
+            c = self.n_infos[from].sibling;
+            from = self.array[from].check as usize;
 
             p -= 1;
         }
 
         if c != 0 {
             // it has a sibling so we leverage on `begin` to traverse the subtree down again.
-            from = (self.array[from].base() ^ (c as i32)) as usize;
+            from = (self.array[from].base() ^ i32::from(c)) as usize;
             let (v_, from_, p_) = self.begin(from, p + 1);
             (v_, from_, p_)
         } else {
@@ -694,7 +693,7 @@ impl Cedar {
         let e: i32 = if base < 0 {
             self.find_place()
         } else {
-            base ^ (label as i32)
+            base ^ i32::from(label)
         };
 
         let idx = e >> 8;
@@ -724,7 +723,7 @@ impl Cedar {
             self.array[e as usize].base_ = CEDAR_VALUE_LIMIT;
             self.array[e as usize].check = from;
             if base < 0 {
-                self.array[from as usize].base_ = -(e ^ (label as i32)) - 1;
+                self.array[from as usize].base_ = -(e ^ i32::from(label)) - 1;
             }
         }
 
@@ -737,7 +736,7 @@ impl Cedar {
             }
             self.array[e as usize].check = from;
             if base < 0 {
-                self.array[from as usize].base_ = e ^ (label as i32);
+                self.array[from as usize].base_ = e ^ i32::from(label);
             }
         }
 
@@ -800,10 +799,10 @@ impl Cedar {
 
         let sibling: u8;
         {
-            let mut c: &mut u8 = &mut self.n_infos[from as usize].child;
+            let mut c: &mut u8 = &mut self.n_infos[from].child;
             if has_child && keep_order {
                 loop {
-                    let code = *c as i32;
+                    let code = i32::from(*c);
                     c = &mut self.n_infos[(base ^ code) as usize].sibling;
 
                     if !(self.ordered && (*c != 0) && (*c < label)) {
@@ -816,7 +815,7 @@ impl Cedar {
             *c = label;
         }
 
-        self.n_infos[(base ^ (label as i32)) as usize].sibling = sibling;
+        self.n_infos[(base ^ i32::from(label)) as usize].sibling = sibling;
     }
 
     // remove the `label` from the sibling chain.
@@ -832,7 +831,7 @@ impl Cedar {
             };
 
             if next_label == label {
-                let sibling_of_target = self.n_infos[(base ^ (label as i32)) as usize].sibling;
+                let sibling_of_target = self.n_infos[(base ^ i32::from(label)) as usize].sibling;
                 if is_child {
                     self.n_infos[idx].child = sibling_of_target;
                 } else {
@@ -841,7 +840,7 @@ impl Cedar {
                 return;
             }
 
-            idx = (base ^ (next_label as i32)) as usize;
+            idx = (base ^ i32::from(next_label)) as usize;
             is_child = false;
         }
     }
@@ -850,8 +849,8 @@ impl Cedar {
     // with smaller in children size, and we should try to relocate the smaller one.
     fn consult(&self, base_n: i32, base_p: i32, mut c_n: u8, mut c_p: u8) -> bool {
         loop {
-            c_n = self.n_infos[(base_n ^ (c_n as i32)) as usize].sibling;
-            c_p = self.n_infos[(base_p ^ (c_p as i32)) as usize].sibling;
+            c_n = self.n_infos[(base_n ^ i32::from(c_n)) as usize].sibling;
+            c_p = self.n_infos[(base_p ^ i32::from(c_p)) as usize].sibling;
 
             if !(c_n != 0 && c_p != 0) {
                 break;
@@ -867,13 +866,13 @@ impl Cedar {
 
         if c == 0 {
             child.push(c);
-            c = self.n_infos[(base ^ (c as i32)) as usize].sibling;
+            c = self.n_infos[(base ^ i32::from(c)) as usize].sibling;
         }
 
         if self.ordered {
             while c != 0 && c <= label {
                 child.push(c);
-                c = self.n_infos[(base ^ (c as i32)) as usize].sibling;
+                c = self.n_infos[(base ^ i32::from(c)) as usize].sibling;
             }
         }
 
@@ -883,7 +882,7 @@ impl Cedar {
 
         while c != 0 {
             child.push(c);
-            c = self.n_infos[(base ^ (c as i32)) as usize].sibling;
+            c = self.n_infos[(base ^ i32::from(c)) as usize].sibling;
         }
 
         child
@@ -920,11 +919,11 @@ impl Cedar {
                 if self.blocks[idx as usize].num >= nc && nc < self.blocks[idx as usize].reject {
                     let mut e = self.blocks[idx as usize].e_head;
                     loop {
-                        let base = e ^ (child[0] as i32);
+                        let base = e ^ i32::from(child[0]);
 
                         let mut i = 1;
                         // iterate through the children to see if they are available: (check < 0)
-                        while self.array[(base ^ (child[i] as i32)) as usize].check < 0 {
+                        while self.array[(base ^ i32::from(child[i])) as usize].check < 0 {
                             if i == child.len() - 1 {
                                 // we have found the available block.
                                 self.blocks[idx as usize].e_head = e;
@@ -973,7 +972,7 @@ impl Cedar {
 
     // resolve the conflict by moving one of the the nodes to a free block.
     fn resolve(&mut self, mut from_n: usize, base_n: i32, label_n: u8) -> i32 {
-        let to_pn = base_n ^ (label_n as i32);
+        let to_pn = base_n ^ i32::from(label_n);
 
         // the `base` and `from` for the conflicting one.
         let from_p = self.array[to_pn as usize].check;
@@ -983,13 +982,13 @@ impl Cedar {
         let flag = self.consult(
             base_n,
             base_p,
-            self.n_infos[from_n as usize].child,
+            self.n_infos[from_n].child,
             self.n_infos[from_p as usize].child,
         );
 
         // collect the list of children for the block that we are going to relocate.
         let children = if flag {
-            self.set_child(base_n, self.n_infos[from_n as usize].child, label_n, true)
+            self.set_child(base_n, self.n_infos[from_n].child, label_n, true)
         } else {
             self.set_child(base_p, self.n_infos[from_p as usize].child, 255, false)
         };
@@ -1002,7 +1001,7 @@ impl Cedar {
             self.find_places(&children)
         };
 
-        base ^= children[0] as i32;
+        base ^= i32::from(children[0]);
 
         let (from, base_) = if flag {
             (from_n as i32, base_n)
@@ -1027,7 +1026,7 @@ impl Cedar {
         // the actual work for relocating the children
         for i in 0..(children.len()) {
             let to = self.pop_e_node(base, children[i], from);
-            let to_ = base_ ^ (children[i] as i32);
+            let to_ = base_ ^ i32::from(children[i]);
 
             if i == children.len() - 1 {
                 self.n_infos[to as usize].sibling = 0;
@@ -1052,7 +1051,7 @@ impl Cedar {
                 self.n_infos[to as usize].child = c;
 
                 loop {
-                    let idx = (self.array[to as usize].base() ^ (c as i32)) as usize;
+                    let idx = (self.array[to as usize].base() ^ i32::from(c)) as usize;
                     self.array[idx].check = to;
                     c = self.n_infos[idx].sibling;
 
@@ -1068,7 +1067,7 @@ impl Cedar {
 
             // clean up the space that was moved away from.
             if !flag && to_ == to_pn {
-                self.push_sibling(from_n, to_pn ^ (label_n as i32), label_n, true);
+                self.push_sibling(from_n, to_pn ^ i32::from(label_n), label_n, true);
                 self.n_infos[to_ as usize].child = 0;
 
                 #[cfg(feature = "reduced-trie")]
@@ -1093,7 +1092,7 @@ impl Cedar {
 
         // return the position that is free now.
         if flag {
-            base ^ (label_n as i32)
+            base ^ i32::from(label_n)
         } else {
             to_pn
         }
