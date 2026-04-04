@@ -558,19 +558,15 @@ impl Cedar {
 
     // To move the cursor from one leaf to the next for the common_prefix_predict.
     fn next(&self, mut from: usize, mut p: usize, root: usize) -> (Option<i32>, usize, usize) {
-        #[allow(unused_assignments)]
-        let mut c: u8 = 0;
-
         #[cfg(feature = "reduced-trie")]
-        {
-            if self.array[from].base_ < 0 {
-                c = self.n_infos[(self.array[from].base()) as usize].sibling;
-            }
-        }
+        let mut c: u8 = if self.array[from].base_ < 0 {
+            self.n_infos[(self.array[from].base()) as usize].sibling
+        } else {
+            0
+        };
+
         #[cfg(not(feature = "reduced-trie"))]
-        {
-            c = self.n_infos[(self.array[from].base()) as usize].sibling;
-        }
+        let mut c: u8 = self.n_infos[(self.array[from].base()) as usize].sibling;
 
         // traversing up until there is a sibling or it has reached the root.
         while c == 0 && from != root {
