@@ -2,26 +2,22 @@
 name = "cedarwood"
 description = "efficiently-updatable double-array trie in Rust (ported from cedar)"
 repository = "https://github.com/MnO2/cedarwood"
-version = "0.4.6"
+version = "0.5.0"
 license = "BSD-2-Clause"
 authors = ["Paul Meng <me@paulme.ng>"]
 readme = "README.md"
 keywords = ["trie", "cedar", "string", "search", "text"]
 categories = ["data-structures", "text-processing"]
-edition = "2018"
-exclude = ["/benches/**", "/.travis.yml"]
-
-[badges]
-travis-ci = { repository = "MnO2/cedarwood" }
-codecov = { repository = "MnO2/cedarwood" }
+edition = "2021"
+exclude = ["/benches/**"]
 
 [features]
 default = []
 reduced-trie = []
 
 [dev-dependencies]
-criterion = "0.4.0"
-rand = "0.8.4"
+criterion = "0.5"
+rand = "0.8.5"
 
 [[bench]]
 name = "cedarwood_benchmark"
@@ -33,4 +29,4 @@ required-features = []
 all-features = true
 
 [dependencies]
-smallvec = { version = "1.6.1", features = ["union"] }
+smallvec = { version = "1.13", features = ["union"] }
