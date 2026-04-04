@@ -97,7 +97,7 @@ struct Block {
     num: i16,    // the number of slots that is free, the range is 0-256
     reject: i16, // a heuristic number to make the search for free space faster, it is the minimum number of iteration in each trie node it has to try before we can conclude that we can reject this block. If the number of kids for the block we are looking for is less than this number then this block is worthy of searching.
     trial: i32,  // the number of times this block has been probed by `find_places` for the free block.
-    e_head: i32, // the index of the first empty elemenet in this block
+    e_head: i32, // the index of the first empty element in this block
 }
 
 impl Block {
@@ -110,6 +110,12 @@ impl Block {
             trial: 0,
             e_head: 0,
         }
+    }
+}
+
+impl Default for Block {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -395,7 +401,7 @@ impl Cedar {
             }
         }
 
-        // return the value of the node if `check` is correctly marked fpr the ownership, otherwise
+        // return the value of the node if `check` is correctly marked for the ownership, otherwise
         // it means no value is stored.
         let n = &self.array[(self.array[*from].base()) as usize];
         if n.check != (*from as i32) {
@@ -645,7 +651,7 @@ impl Cedar {
 
         self.blocks[self.size >> 8].e_head = self.size as i32;
 
-        // make it a doubley linked list
+        // make it a doubly linked list
         self.array[self.size] = Node {
             base_: -((self.size as i32) + 255),
             check: -((self.size as i32) + 1),
@@ -841,7 +847,7 @@ impl Cedar {
     }
 
     // Loop through the siblings to see which one reached the end first, which means it is the one
-    // with smaller in children size, and we should try ti relocate the smaller one.
+    // with smaller in children size, and we should try to relocate the smaller one.
     fn consult(&self, base_n: i32, base_p: i32, mut c_n: u8, mut c_p: u8) -> bool {
         loop {
             c_n = self.n_infos[(base_n ^ (c_n as i32)) as usize].sibling;
@@ -952,7 +958,7 @@ impl Cedar {
                     self.transfer_block(idx, BlockType::Open, BlockType::Closed, self.blocks_head_closed == 0);
                 }
 
-                // we have finsihed one round of this cyclic doubly-linked-list.
+                // we have finished one round of this cyclic doubly-linked-list.
                 if idx == bz {
                     break;
                 }
@@ -1018,7 +1024,7 @@ impl Cedar {
             self.array[from as usize].base_ = base;
         }
 
-        // the actual work for relocating the chilren
+        // the actual work for relocating the children
         for i in 0..(children.len()) {
             let to = self.pop_e_node(base, children[i], from);
             let to_ = base_ ^ (children[i] as i32);
