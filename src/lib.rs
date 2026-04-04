@@ -240,7 +240,6 @@ impl<'a> Iterator for PrefixPredictIter<'a> {
 #[allow(clippy::cast_lossless)]
 impl Cedar {
     /// Initialize the Cedar for further use.
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let mut array: Vec<Node> = Vec::with_capacity(256);
         let n_infos: Vec<NInfo> = (0..256).map(|_| Default::default()).collect();
@@ -1102,6 +1101,12 @@ impl Cedar {
         } else {
             to_pn
         }
+    }
+}
+
+impl Default for Cedar {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
