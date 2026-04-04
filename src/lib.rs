@@ -498,7 +498,12 @@ impl Cedar {
 
     /// To return the collection of the common prefix in the dictionary with the `key` passed in.
     pub fn common_prefix_search(&self, key: &str) -> Option<Vec<(i32, usize)>> {
-        self.common_prefix_iter(key).map(Some).collect()
+        let results: Vec<(i32, usize)> = self.common_prefix_iter(key).collect();
+        if results.is_empty() {
+            None
+        } else {
+            Some(results)
+        }
     }
 
     /// To return an iterator to iterate through the list of words in the dictionary that has `key` as their prefix.
@@ -517,7 +522,12 @@ impl Cedar {
 
     /// To return the list of words in the dictionary that has `key` as their prefix.
     pub fn common_prefix_predict(&self, key: &str) -> Option<Vec<(i32, usize)>> {
-        self.common_prefix_predict_iter(key).map(Some).collect()
+        let results: Vec<(i32, usize)> = self.common_prefix_predict_iter(key).collect();
+        if results.is_empty() {
+            None
+        } else {
+            Some(results)
+        }
     }
 
     // To get the cursor of the first leaf node starting by `from`
@@ -1410,6 +1420,20 @@ mod tests {
             cedar.erase(s);
             assert!(cedar.exact_match_search(s).is_none());
         }
+    }
+
+    #[test]
+    fn test_common_prefix_search_returns_none_on_empty() {
+        let mut cedar = Cedar::new();
+        cedar.update("abc", 0);
+        assert_eq!(cedar.common_prefix_search("xyz"), None);
+    }
+
+    #[test]
+    fn test_common_prefix_predict_returns_none_on_empty() {
+        let mut cedar = Cedar::new();
+        cedar.update("abc", 0);
+        assert_eq!(cedar.common_prefix_predict("xyz"), None);
     }
 
     #[test]
